@@ -28,7 +28,7 @@ services:
     command: redis-server --appendonly yes
 
   backend:
-    image: ecommerce-backend:dev
+    image: ${BACKEND_IMAGE:-ecommerce-backend:dev}
     build:
       context: ./my-medusa-store
       dockerfile: Dockerfile.backend
@@ -58,7 +58,7 @@ services:
 
 
   storefront:
-    image: ecommerce-storefront:dev
+    image: ${STOREFRONT_IMAGE:-ecommerce-storefront:dev}
     container_name: ecommerce-storefront
     restart: unless-stopped
     env_file:

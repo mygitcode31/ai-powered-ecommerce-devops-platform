@@ -6,16 +6,14 @@ pipeline {
     }
 
     stages {
-        stage('Validate Project Structure') {
+        stage('Validate Project') {
             steps {
                 sh '''
-                    echo "Checking project files..."
-
+                    set -e
                     test -f docker-compose.yml
                     test -f my-medusa-store/Dockerfile.backend
                     test -f my-medusa-store/Dockerfile.storefront
-
-                    echo "Project structure validation successful."
+                    echo "Project validation successful."
                 '''
             }
         }
@@ -23,16 +21,56 @@ pipeline {
         stage('Check DevOps Tools') {
             steps {
                 sh '''
-                    echo "Checking Git..."
                     git --version
-
-                    echo "Checking Docker..."
                     docker --version
-
-                    echo "Checking Docker Compose..."
                     docker compose version
+                '''
+            }
+        }
 
-                    echo "Tool verification successful."
+        stage('Build Backend Image') {
+            steps {
+                sh '''
+                    set -e
+                    IMAGE_TAG=$(git rev-parse --short=12 HEAD)
+
+                    docker build \
+                      -f my-medusa-store/Dockerfile.backend \
+                      -t ecommerce-backend:$IMAGE_TAG \
+                      my-medusa-store
+
+                    echo "Backend image built: ecommerce-backend:$IMAGE_TAG"
+                '''
+            }
+        }
+
+        stage('Build Storefront Image') {
+            steps {
+                sh '''
+                    set -e
+                    IMAGE_TAG=$(git rev-parse --short=12 HEAD)
+
+                    docker build \
+                      --secret id=storefront_env,src=/var/lib/jenkins/secure-files/storefront.env \
+                      -f my-medusa-store/Dockerfile.storefront \
+                      -t ecommerce-storefront:$IMAGE_TAG \
+                      my-medusa-store
+
+                    echo "Storefront image built: ecommerce-storefront:$IMAGE_TAG"
+                '''
+            }
+        }
+
+        stage('Verify Images') {
+            steps {
+                sh '''
+                    set -e
+                    IMAGE_TAG=$(git rev-parse --short=12 HEAD)
+
+                    docker image inspect ecommerce-backend:$IMAGE_TAG
+                    docker image inspect ecommerce-storefront:$IMAGE_TAG
+
+                    echo "Both Docker images verified."
                 '''
             }
         }
@@ -40,11 +78,11 @@ pipeline {
 
     post {
         success {
-            echo 'CI Pipeline completed successfully!'
+            echo 'CI pipeline completed successfully. Docker images are ready.'
         }
 
         failure {
-            echo 'CI Pipeline failed. Check the console output.'
+            echo 'Pipeline failed. Check the console output.'
         }
     }
 }
