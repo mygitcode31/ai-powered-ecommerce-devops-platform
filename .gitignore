@@ -1,0 +1,44 @@
+# Environment files and secrets
+.env
+.env.*
+**/.env
+**/.env.*
+**/*.env
+!**/.env.template
+
+# Private keys and certificates
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Next.js and build output
+.next/
+**/.next/
+out/
+dist/
+build/
+.turbo/
+
+# Logs and temporary files
+*.log
+.DS_Store
+*.tmp
+
+# Backups
+*.backup
+*.backup-*
+
+# Terraform state and secrets
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+
+# Runtime data
+coverage/
+*.tsbuildinfo
