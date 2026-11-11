@@ -42,3 +42,6 @@ build/
 # Runtime data
 coverage/
 *.tsbuildinfo
+
+# Automated test reports
+test-results/
