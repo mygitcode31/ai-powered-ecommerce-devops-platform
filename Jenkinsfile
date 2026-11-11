@@ -29,6 +29,34 @@ pipeline {
             }
         }
 
+        stage('Run Backend Unit Tests') {
+            steps {
+                sh '''
+                    set -eu
+
+                    mkdir -p my-medusa-store/test-results
+                    rm -f my-medusa-store/test-results/*.xml
+
+                    docker run --rm \
+                      --user "$(id -u):$(id -g)" \
+                      -e HOME=/tmp \
+                      -e npm_config_cache=/tmp/npm-cache \
+                      -e JEST_JUNIT_OUTPUT_DIR=/app/test-results \
+                      -e JEST_JUNIT_OUTPUT_NAME=backend-unit-tests.xml \
+                      -v "$WORKSPACE/my-medusa-store:/app" \
+                      -w /app \
+                      node:22-bookworm \
+                      bash -lc 'npm ci && npm run test:unit --workspace=@dtc/backend -- --reporters=default --reporters=jest-junit'
+                '''
+            }
+            post {
+                always {
+                    junit allowEmptyResults: true,
+                          testResults: 'my-medusa-store/test-results/*.xml'
+                }
+            }
+        }
+
         stage('Build Backend Image') {
             steps {
                 sh '''
